@@ -1,0 +1,10 @@
+{
+  "keyword": "vintage camera",
+  "category": "625",
+  "condition": "3000",
+  "minPrice": "50",
+  "maxPrice": "500",
+  "minBids": "1",
+  "maxResults": "10",
+  "email": "demo@example.com"
+}

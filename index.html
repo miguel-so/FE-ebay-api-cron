@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eBay Listing Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #e74c3c;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 10px 20px rgba(149, 165, 166, 0.3);
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .results h3 {
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+
+        .listing-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #e74c3c;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .listing-item h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .listing-item p {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .listing-item a {
+            color: #e74c3c;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .listing-item a:hover {
+            text-decoration: underline;
+        }
+
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 eBay Listing Monitor</h1>
+            <p>Get notified before your favorite listings end!</p>
+        </div>
+
+        <div class="form-container">
+            <form id="searchForm">
+                <div class="form-group">
+                    <label for="keyword">Search Keywords</label>
+                    <input type="text" id="keyword" name="keyword" placeholder="e.g., iPhone, vintage camera, collectible" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category" name="category">
+                            <option value="">All Categories</option>
+                            <option value="267">Books</option>
+                            <option value="11450">Clothing, Shoes & Accessories</option>
+                            <option value="281">Electronics</option>
+                            <option value="14339">Health & Beauty</option>
+                            <option value="11700">Home & Garden</option>
+                            <option value="1281">Jewelry & Watches</option>
+                            <option value="11232">Motors</option>
+                            <option value="619">Musical Instruments</option>
+                            <option value="1288">Pet Supplies</option>
+                            <option value="888">Sporting Goods</option>
+                            <option value="220">Toys & Hobbies</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="condition">Item Condition</label>
+                        <select id="condition" name="condition">
+                            <option value="">Any Condition</option>
+                            <option value="1000">New</option>
+                            <option value="3000">Used</option>
+                            <option value="4000">Very Good</option>
+                            <option value="5000">Good</option>
+                            <option value="6000">Acceptable</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="minPrice">Minimum Price ($)</label>
+                        <input type="number" id="minPrice" name="minPrice" placeholder="0" min="0" step="0.01">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="maxPrice">Maximum Price ($)</label>
+                        <input type="number" id="maxPrice" name="maxPrice" placeholder="1000" min="0" step="0.01">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="minBids">Minimum Bids</label>
+                        <input type="number" id="minBids" name="minBids" placeholder="0" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="maxResults">Max Results (1-100)</label>
+                        <input type="number" id="maxResults" name="maxResults" placeholder="20" min="1" max="100" value="20">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email for Notifications</label>
+                    <input type="email" id="email" name="email" placeholder="your@email.com" required>
+                </div>
+
+                <button type="submit" class="btn">Save Search Criteria</button>
+                <button type="button" class="btn btn-secondary" onclick="loadSavedCriteria()">Load Saved Criteria</button>
+            </form>
+
+            <div id="status" class="status"></div>
+
+            <div id="results" class="results">
+                <h3>Current Listings Ending Soon</h3>
+                <div id="listings"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load saved criteria on page load
+        window.onload = function() {
+            loadSavedCriteria();
+        };
+
+        // Handle form submission
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveCriteria();
+        });
+
+        function saveCriteria() {
+            const formData = new FormData(document.getElementById('searchForm'));
+            const criteria = {};
+            
+            for (let [key, value] of formData.entries()) {
+                if (value.trim() !== '') {
+                    criteria[key] = value;
+                }
+            }
+
+            // Save to localStorage
+            localStorage.setItem('ebaySearchCriteria', JSON.stringify(criteria));
+            
+            showStatus('Search criteria saved successfully!', 'success');
+            
+            // Also save to backend (for the cron job)
+            saveToBackend(criteria);
+        }
+
+        function loadSavedCriteria() {
+            const saved = localStorage.getItem('ebaySearchCriteria');
+            if (saved) {
+                const criteria = JSON.parse(saved);
+                
+                // Populate form fields
+                Object.keys(criteria).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = criteria[key];
+                    }
+                });
+                
+                showStatus('Saved criteria loaded!', 'success');
+            }
+        }
+
+        async function saveToBackend(criteria) {
+            try {
+                const response = await fetch('/api/save-criteria', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(criteria)
+                });
+                
+                if (response.ok) {
+                    console.log('Criteria saved to backend');
+                }
+            } catch (error) {
+                console.error('Error saving to backend:', error);
+            }
+        }
+
+        async function searchListings() {
+            const criteria = JSON.parse(localStorage.getItem('ebaySearchCriteria') || '{}');
+            
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(criteria)
+                });
+                
+                const data = await response.json();
+                displayResults(data.listings || []);
+            } catch (error) {
+                showStatus('Error searching listings: ' + error.message, 'error');
+            }
+        }
+
+        function displayResults(listings) {
+            const resultsDiv = document.getElementById('results');
+            const listingsDiv = document.getElementById('listings');
+            
+            if (listings.length === 0) {
+                listingsDiv.innerHTML = '<p>No listings found matching your criteria.</p>';
+            } else {
+                listingsDiv.innerHTML = listings.map(listing => `
+                    <div class="listing-item">
+                        <h4>${listing.title}</h4>
+                        <p><strong>Price:</strong> $${listing.price}</p>
+                        <p><strong>Bids:</strong> ${listing.bids || 'No bids'}</p>
+                        <p><strong>Ends:</strong> ${new Date(listing.endTime).toLocaleString()}</p>
+                        <p><strong>Condition:</strong> ${listing.condition}</p>
+                        <a href="${listing.url}" target="_blank">View on eBay</a>
+                    </div>
+                `).join('');
+            }
+            
+            resultsDiv.style.display = 'block';
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Auto-search when criteria are loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(searchListings, 1000);
+        });
+    </script>
+</body>
+</html>
